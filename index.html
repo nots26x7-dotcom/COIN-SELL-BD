@@ -138,7 +138,6 @@ body { background: var(--bg); margin: 0; padding: 15px; padding-bottom: 120px; c
 .coin-card.offline .click-here-text {
     display: none;
 }
-${v.status ? `<div class="click-here-text">CLICK HERE</div>` : ''}
 
 /* MODALS */
 .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; align-items: flex-end; z-index: 2000; }
@@ -464,58 +463,8 @@ ${v.status ? `<div class="click-here-text">CLICK HERE</div>` : ''}
             </div>
         </div>
 
-        <button class="btn-submit" onclick="finalSubmitOrder()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);">Confirm & Submit ✅</button>
+        <button class="btn-submit" onclick="finalSubmitOrder(this)" style="background: linear-gradient(135deg, #2563eb, #7c3aed); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);">Confirm & Submit ✅</button>
         <button onclick="closeReviewModal()" style="width:100%; border:none; background:none; margin-top:15px; color:#94a3b8; font-weight:700; font-size: 14px;">Go Back & Edit</button>
-    </div>
-</div>
-
-<div id="admin-master-ui">
-    <div id="admin-lock-screen">
-        <div style="background:white; padding:30px; border-radius:25px; text-align:center; width:300px; color:#1e293b;">
-            <h3 style="margin-bottom:20px;">Admin Access</h3>
-            <input type="password" id="adm-pin-input" placeholder="ENTER PIN" style="width:100%; padding:15px; text-align:center; border-radius:15px; border:1.5px solid #ddd; margin-bottom:15px; font-weight:900;">
-            <button onclick="verifyAdminPin()" style="width:100%; background:#2563eb; color:white; padding:15px; border:none; border-radius:15px; font-weight:800;">UNLOCK PANEL</button>
-            <button onclick="closeAdminPanel()" style="margin-top:10px; background:none; border:none; color:#64748b; font-weight:700;">Back to App</button>
-        </div>
-    </div>
-
-    <div id="admin-dashboard-view" style="display:none;">
-        <div style="padding:20px; display:flex; justify-content:space-between; align-items:center; background:white; border-bottom:1.5px solid #e2e8f0; position:sticky; top:0; z-index:100;">
-            <h2 style="margin:0; color:#ef4444; font-weight:900; font-size:18px;">ADMIN PANEL</h2>
-            <button onclick="closeAdminPanel()" style="background:#f1f5f9; border:none; padding:10px 15px; border-radius:12px; font-weight:800;">EXIT</button>
-        </div>
-
-<div class="adm-stats-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-    <div class="adm-stat-box" style="background: var(--card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
-        <small style="color: var(--subtext); display: block; margin-bottom: 5px; font-size: 12px;">Pending Orders</small>
-        <h3 id="adm-display-pending" style="font-size: 24px; color: #f59e0b; margin: 0;">0</h3>
-    </div>
-
-    <div class="adm-tab-menu" style="display: flex; background: #f1f5f9; border-radius: 15px; padding: 5px; gap: 5px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
-        <div class="adm-tab active" onclick="filterTab('pending', this)" style="flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 12px; font-weight: 800; font-size: 11px;">
-            Pending <span id="count-pending" style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 8px; font-size: 9px; margin-left: 4px;">0</span>
-        </div>
-        <div class="adm-tab" onclick="filterTab('completed', this)" style="flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 12px; font-weight: 800; font-size: 11px;">
-            Approved <span id="count-completed" style="background: #10b981; color: white; padding: 2px 6px; border-radius: 8px; font-size: 9px; margin-left: 4px;">0</span>
-        </div>
-        <div class="adm-tab" onclick="filterTab('rejected', this)" style="flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 12px; font-weight: 800; font-size: 11px;">
-            Rejected <span id="count-rejected" style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 8px; font-size: 9px; margin-left: 4px;">0</span>
-        </div>
-        <div class="adm-tab" onclick="filterTab('settings', this)" style="flex: 1; text-align: center; padding: 10px; cursor: pointer; border-radius: 12px; font-weight: 800; font-size: 11px;">
-            Settings
-        </div>
-    </div>
-
-    <div id="order-list-section">
-        <div id="order-list"></div>
-    </div>
-</div>
-
-        <div id="settings-section" style="display:none;">
-             </div>
-    </div> 
-</div>
-        </div>
     </div>
 </div>
 
@@ -539,7 +488,7 @@ ${v.status ? `<div class="click-here-text">CLICK HERE</div>` : ''}
     const tg = window.Telegram.WebApp;
     const ADMIN_LIST = [8539327345, 8505710811];
 
-    let currentSelectedCoin = "", currentCoinRate = 0, currentCoinTID = "", calculatedFinalPayout = 0;
+    let currentSelectedCoin = "", currentCoinRate = 0, currentCoinAdminRate = 0, currentCoinTID = "", calculatedFinalPayout = 0;
     let adminActiveTab = 'pending';
 
     window.onload = () => {
@@ -598,8 +547,11 @@ ${v.status ? `<div class="click-here-text">CLICK HERE</div>` : ''}
             let html = "";
             snap.forEach(c => {
                 const v = c.val(); const on = v.status !== false;
-                html += `<div class="coin-card ${!on?'offline':''}" onclick="${on?`openOrderModal('${c.key}',${v.userRate},'${v.transferId}')`:''}">
-                    <div class="status-badge ${on?'status-online':'status-offline'}">${on?'● Online':'● Offline'}</div>
+                const safeKey = String(c.key || '').replace(/"/g, '&quot;');
+                const safeTid = String(v.transferId || '').replace(/"/g, '&quot;');
+                html += `<div class="coin-card ${!on ? 'offline' : ''}"
+                    ${on ? `data-coin="${safeKey}" data-user-rate="${Number(v.userRate || 0)}" data-admin-rate="${Number(v.adminRate || 0)}" data-transfer-id="${safeTid}" onclick="handleCoinCardClick(this)"` : ''}>
+                    <div class="status-badge ${on ? 'status-online' : 'status-offline'}">${on ? '● Online' : '● Offline'}</div>
                     <div style="display:flex; align-items:center; gap:15px;">
                         <div class="icon-box">🪙</div>
                         <div><b style="font-size:18px;">${c.key}</b><br><small style="color:#ADADAD; font-weight:800;">MARKET RATE</small></div>
@@ -651,10 +603,29 @@ function switchAdminTab(t, el) {
     }
 }
 
-    function openOrderModal(name, rate, tid) {
-        currentSelectedCoin = name; currentCoinRate = rate; currentCoinTID = tid;
+    function handleCoinCardClick(card) {
+        if (!card || card.classList.contains('offline')) return;
+        const name = card.dataset.coin || '';
+        const userRate = parseFloat(card.dataset.userRate || 0);
+        const adminRate = parseFloat(card.dataset.adminRate || 0);
+        const tid = card.dataset.transferId || '';
+        openOrderModal(name, userRate, adminRate, tid);
+    }
+
+    function openOrderModal(name, userRate, adminRate, tid) {
+        currentSelectedCoin = name;
+        currentCoinRate = parseFloat(userRate || 0);
+        currentCoinAdminRate = parseFloat(adminRate || 0);
+        currentCoinTID = tid;
+
         document.getElementById('modal-coin-title').innerText = "Sell " + name;
         document.getElementById('display-admin-id').innerText = tid;
+        document.getElementById('input-qty').value = '';
+        document.getElementById('input-sender').value = '';
+        document.getElementById('input-number').value = '';
+        calculatedFinalPayout = 0;
+        document.getElementById('display-final-payout').innerText = "0.00 ৳";
+
         document.getElementById('order-modal').style.display = 'flex';
         setTimeout(() => document.getElementById('order-modal').classList.add('active'), 10);
     }
@@ -665,9 +636,10 @@ function switchAdminTab(t, el) {
     }
 
     function calculatePayout() {
-        const qty = document.getElementById('input-qty').value;
-        const raw = (qty/1000) * currentCoinRate;
-        calculatedFinalPayout = raw > 5 ? (raw - 5).toFixed(2) : 0;
+        const qty = parseFloat(document.getElementById('input-qty').value) || 0;
+        const appliedRate = qty >= 100000 ? currentCoinAdminRate : currentCoinRate;
+        const raw = (qty / 1000) * appliedRate;
+        calculatedFinalPayout = raw > 5 ? Number(raw - 5).toFixed(2) : "0.00";
         document.getElementById('display-final-payout').innerText = calculatedFinalPayout + " ৳";
     }
 
@@ -678,14 +650,15 @@ function switchAdminTab(t, el) {
 
     // Function 1: Double Confirm Modal Open Kora
 function showConfirmation() {
-    const qty = document.getElementById('input-qty').value;
-    const sender = document.getElementById('input-sender').value;
-    const num = document.getElementById('input-number').value;
+    const qty = parseFloat(document.getElementById('input-qty').value) || 0;
+    const sender = document.getElementById('input-sender').value.trim();
+    const num = document.getElementById('input-number').value.trim();
     const method = document.getElementById('input-method').value;
 
-    if(qty < 5000 || !sender || !num) return alert("Fill all details! (Min 5000)");
+    calculatePayout();
 
-    // Review Modal-e user-er dewa data set kora
+    if (qty < 5000 || !sender || !num) return alert("Fill all details! (Min 5000)");
+
     document.getElementById('r-coin').innerText = currentSelectedCoin;
     document.getElementById('r-qty').innerText = qty;
     document.getElementById('r-sender').innerText = sender;
@@ -693,10 +666,9 @@ function showConfirmation() {
     document.getElementById('r-number').innerText = num;
     document.getElementById('r-pay').innerText = calculatedFinalPayout + " ৳";
 
-    // Prothom modal bondho kore Review modal khola
-    closeModal(); 
+    closeModal();
     const rm = document.getElementById('review-modal');
-    rm.style.display = 'flex'; 
+    rm.style.display = 'flex';
     setTimeout(() => rm.classList.add('active'), 10);
 }
 
@@ -767,6 +739,51 @@ function closeReviewModal() {
     rm.classList.remove('active');
     setTimeout(() => { rm.style.display = 'none'; }, 400);
 }
+
+    
+function closeReviewModal() {
+    const rm = document.getElementById('review-modal');
+    rm.classList.remove('active');
+    setTimeout(() => { rm.style.display = 'none'; }, 400);
+}
+
+function finalSubmitOrder(btn) {
+    if (!currentSelectedCoin) return alert("Please select a coin first.");
+
+    if (btn && btn.disabled !== undefined) {
+        btn.disabled = true;
+        btn.innerText = "Submitting...";
+    }
+
+    const orderId = Date.now();
+    const user = tg.initDataUnsafe.user || { id: 12345, username: "guest" };
+
+    db.ref('orders/' + orderId).set({
+        id: orderId,
+        user: user.username || user.first_name || "guest",
+        coin: currentSelectedCoin,
+        amt: parseFloat(document.getElementById('r-qty').innerText) || 0,
+        payable: parseFloat(calculatedFinalPayout) || 0,
+        sender: document.getElementById('r-sender').innerText,
+        number: document.getElementById('r-number').innerText,
+        method: document.getElementById('r-method').innerText,
+        status: 'pending',
+        targetId: currentCoinTID,
+        appliedRate: (parseFloat(document.getElementById('r-qty').innerText) || 0) >= 100000 ? currentCoinAdminRate : currentCoinRate,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    }).then(() => {
+        closeReviewModal();
+        alert("Order Submitted Successfully! Check history for updates.");
+        location.reload();
+    }).catch(err => {
+        alert("Error: " + err.message);
+        if (btn && btn.disabled !== undefined) {
+            btn.disabled = false;
+            btn.innerText = "Confirm & Submit ✅";
+        }
+    });
+}
+
 
     function fetchHistory() {
     // Telegram user data check
